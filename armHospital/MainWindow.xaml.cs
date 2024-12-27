@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using armHospital.Services;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -16,23 +17,28 @@ namespace armHospital
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly AuthService _authService;
         public MainWindow()
         {
             InitializeComponent();
+            var context = new Data.DatabaseContext("Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=0611;");
+            var userRepository = new Data.Repositories.UserRepository(context);
+            _authService = new Services.AuthService(userRepository);
         }
 
-        private void btnLogin_Click(object sender, RoutedEventArgs e)
+        private async void btnLogin_Click(object sender, RoutedEventArgs e)
         {
-            string username = txtUsername.Text;
-            string password = txtPassword.Password;
-
-            if (username != "admin" && password != "1234")
+            var user = await _authService.Login(txtUsername.Text, txtPassword.Password);
+            if (user != null)
             {
-                MessageBox.Show("Вход выполнен успешно");
+                MessageBox.Show("Вход выполнен успешно!");
+                var mainAppWindow = new MainAppWindow(user.Id, user.Role);
+                mainAppWindow.Show();
+                this.Close();
             }
             else
             {
-                MessageBox.Show("Нверный логин или пароль!");
+                MessageBox.Show("Неверный логин или пароль!");
             }
         }
 
@@ -40,7 +46,7 @@ namespace armHospital
         {
             RegistrationWindow registrationWindow = new RegistrationWindow();
             registrationWindow.Show();
-            this.Hide(); 
+            this.Close(); 
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using armHospital.Models;
+using armHospital.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,23 +21,41 @@ namespace armHospital
     /// </summary>
     public partial class RegistrationWindow : Window
     {
+        private readonly AuthService _authService;
         public RegistrationWindow()
         {
             InitializeComponent();
+            var context = new Data.DatabaseContext("Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=0611;");
+            var userRepository = new Data.Repositories.UserRepository(context);
+            _authService = new Services.AuthService(userRepository);
         }
 
-        private void btnRegister_Click(object sender, RoutedEventArgs e)
+        private async void btnRegister_Click(object sender, RoutedEventArgs e)
         {
-            string username = txtNewUsername.Text;
-            string password = txtNewPassword.Password;
-            string confirmPassword = txtConfirmPassword.Password;
-
-            if (password == confirmPassword)
+            var user = new User
             {
-                MessageBox.Show("Регистрация прошла успешно!");
-                MainWindow mainWindow = new MainWindow();
-                mainWindow.Show();
-                this.Close();
+                Username = txtNewUsername.Text,
+                Email = "sophia@example.com",
+                Password = txtNewPassword.Password,
+                PhoneNumber = "79137777713",
+                Role = "doctor",
+                FullName = "София Воронич"
+            };
+
+            if (txtNewPassword.Password == txtConfirmPassword.Password)
+            {
+                bool isRegistered = await _authService.Register(user);
+                if (isRegistered)
+                {
+                    MessageBox.Show("Регистрация прошла успешно!");
+                    var mainWindow = new MainWindow();
+                    mainWindow.Show();
+                    this.Close();
+                }
+                else
+                {
+                    MessageBox.Show("Пользователь с таким логином уже существует!");
+                }
             }
             else
             {
