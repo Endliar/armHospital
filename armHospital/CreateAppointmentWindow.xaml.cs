@@ -15,6 +15,8 @@ namespace armHospital
         private readonly int _adminUserId;
         private readonly Appointment _existingAppointment;
 
+        public bool IsAdmin { get; set; }
+
         public CreateAppointmentWindow(int adminUserId)
         {
             InitializeComponent();
@@ -27,11 +29,14 @@ namespace armHospital
             LoadStatuses();
         }
 
-        public CreateAppointmentWindow(int adminUserId, Appointment appointment)
+        public CreateAppointmentWindow(int adminUserId, Appointment appointment, string role)
         {
             InitializeComponent();
             _adminUserId = adminUserId;
             _existingAppointment = appointment;
+            IsAdmin = role == "admin";
+            DataContext = this;
+
             var context = new Data.DatabaseContext("Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=0611;");
             _appointmentRepository = new AppointmentRepository(context);
             _userRepository = new UserRepository(context);

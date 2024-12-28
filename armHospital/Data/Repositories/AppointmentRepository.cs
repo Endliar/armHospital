@@ -147,5 +147,61 @@ namespace armHospital.Data.Repositories
                 }
             }
         }
+
+        public async Task DeleteAppointment(int id)
+        {
+            using (var connection = _context.CreateConnection())
+            {
+                var npgsqlConnection = (NpgsqlConnection)connection;
+                await npgsqlConnection.OpenAsync();
+
+                var query = "DELETE FROM appointments WHERE id = @Id";
+
+                using (var command = new NpgsqlCommand(query, npgsqlConnection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+        public async Task<List<Appointment>> GetAppointmentsByDoctorId(int doctorId)
+        {
+            var appointments = new List<Appointment>();
+
+            using (var connection = _context.CreateConnection())
+            {
+                var npgsqlConnection = (NpgsqlConnection)connection;
+                await npgsqlConnection.OpenAsync();
+
+                var query = "SELECT * FROM appointments WHERE doctor_id = @DoctorId";
+
+                using (var command = new NpgsqlCommand(query, npgsqlConnection))
+                {
+                    command.Parameters.AddWithValue("@DoctorId", doctorId);
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            appointments.Add(new Appointment
+                            {
+                                Id = reader.GetInt32(0),
+                                UserId = reader.IsDBNull(1) ? (int?)null : reader.GetInt32(1),
+                                DoctorId = reader.IsDBNull(2) ? (int?)null : reader.GetInt32(2),
+                                Title = reader.GetString(3),
+                                Description = reader.GetString(4),
+                                AppointmentDate = reader.GetDateTime(5),
+                                Status = reader.GetString(6),
+                                Comments = reader.GetString(7),
+                                CreatedAt = reader.GetDateTime(8),
+                                UpdatedAt = reader.GetDateTime(9)
+                            });
+                        }
+                    }
+                }
+            }
+
+            return appointments;
+        }
     }
 }

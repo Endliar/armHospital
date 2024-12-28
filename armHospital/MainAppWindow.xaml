@@ -38,8 +38,8 @@
                                         <TextBlock Text="{Binding Status, Converter={StaticResource StatusToTextConverter}, StringFormat='Статус: {0}'}" FontSize="12"/>
                                         <TextBlock Text="{Binding DoctorFullName, StringFormat='Врач: {0}'}" FontSize="12"/>
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 10 0 0">
-                                            <!-- Кнопка для администратора -->
-                                            <Button x:Name="btnEdit" Content="Редактировать" Background="Blue" Foreground="White" 
+                                            <!-- Кнопка для администратора и доктора -->
+                                            <Button x:Name="btnEdit" Content="Просмотреть/Редактировать" Background="Blue" Foreground="White" 
                                             Padding="5 2" Margin="0 0 5 0" Click="btnEdit_Click">
                                                 <Button.Style>
                                                     <Style TargetType="Button">
@@ -48,18 +48,20 @@
                                                             <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Role}" Value="admin">
                                                                 <Setter Property="Visibility" Value="Visible"/>
                                                             </DataTrigger>
+                                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Role}" Value="doctor">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </Button.Style>
                                             </Button>
-                                            <!-- Кнопка для доктора -->
-                                            <Button x:Name="btnView" Content="Просмотр записи" Background="Gray" Foreground="White" 
-                                                Padding="5 2" Margin="0 0 5 0">
+                                            <Button x:Name="btnDelete" Content="Удалить" Background="Red" Foreground="White" 
+                                            Padding="5 2" Click="btnDelete_Click">
                                                 <Button.Style>
                                                     <Style TargetType="Button">
                                                         <Setter Property="Visibility" Value="Collapsed"/>
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Role}" Value="doctor">
+                                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Role}" Value="admin">
                                                                 <Setter Property="Visibility" Value="Visible"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>

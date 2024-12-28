@@ -26,12 +26,24 @@ namespace armHospital
             _appointmentRepository = new AppointmentRepository(context);
             _userRepository = new UserRepository(context);
 
+            btnAddAppointment.Click += BtnAddAppointment_Click;
+
             LoadAppointments(userId, role);
         }
 
         private async void LoadAppointments(int userId, string role)
         {
-            var appointments = await _appointmentRepository.GetAllAppointments();
+            List<Appointment> appointments;
+
+            if (role == "doctor")
+            {
+                appointments = await _appointmentRepository.GetAppointmentsByDoctorId(userId);
+            }
+            else
+            {
+                appointments = await _appointmentRepository.GetAllAppointments();
+            }
+
             if (appointments == null || appointments.Count == 0)
             {
                 txtNoAppointments.Visibility = Visibility.Visible;
@@ -56,7 +68,6 @@ namespace armHospital
             if (role == "admin")
             {
                 btnAddAppointment.Visibility = Visibility.Visible;
-                btnAddAppointment.Click += BtnAddAppointment_Click;
             }
         }
 
@@ -71,9 +82,34 @@ namespace armHospital
         {
             if (sender is Button button && button.DataContext is Appointment appointment)
             {
-                var editWindow = new CreateAppointmentWindow(_userId, appointment);
+                var editWindow = new CreateAppointmentWindow(_userId, appointment, Role);
                 editWindow.ShowDialog();
                 LoadAppointments(_userId, Role);
+            }
+        }
+
+        private async void btnDelete_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.DataContext is Appointment appointment)
+            {
+                var result = MessageBox.Show("Вы уверены, что хотите удалить эту запись?", "Подтверждение удаления",
+                                             MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        await _appointmentRepository.DeleteAppointment(appointment.Id);
+                        MessageBox.Show("Запись успешно удалена!");
+
+                        LoadAppointments(_userId, Role);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Ошибка при удалении записи: {ex.Message}", "Ошибка",
+                                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
             }
         }
     }

@@ -12,17 +12,17 @@
             <TextBlock Text="Доктор:" FontSize="14"/>
             <ComboBox x:Name="cmbDoctors" IsEditable="True" FontSize="14" Margin="0 5 0 10"
                   DisplayMemberPath="FullName" SelectedValuePath="Id"
-                  SelectionChanged="cmbDoctors_SelectionChanged"/>
+                  SelectionChanged="cmbDoctors_SelectionChanged" IsEnabled="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=IsAdmin}"/>
             <TextBlock x:Name="cmbDoctorsError" Foreground="Red" FontSize="12" Margin="0 0 0 10" Visibility="Collapsed"/>
 
             <!-- Поле для заголовка -->
             <TextBlock Text="Заголовок:" FontSize="14"/>
-            <TextBox x:Name="txtTitle" FontSize="14" Margin="0 5 0 10"/>
+            <TextBox x:Name="txtTitle" FontSize="14" Margin="0 5 0 10" IsEnabled="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=IsAdmin}"/>
             <TextBlock x:Name="txtTitleError" Foreground="Red" FontSize="12" Margin="0 0 0 10" Visibility="Collapsed"/>
 
             <!-- Поле для описания -->
             <TextBlock Text="Описание:" FontSize="14"/>
-            <TextBox x:Name="txtDescription" FontSize="14" Margin="0 5 0 10" Height="60" TextWrapping="Wrap"/>
+            <TextBox x:Name="txtDescription" FontSize="14" Margin="0 5 0 10" Height="60" TextWrapping="Wrap" IsEnabled="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=IsAdmin}"/>
             <TextBlock x:Name="txtDescriptionError" Foreground="Red" FontSize="12" Margin="0 0 0 10" Visibility="Collapsed"/>
 
             <!-- Поле для статуса -->
@@ -32,10 +32,10 @@
 
             <!-- Поле для даты и времени -->
             <TextBlock Text="Дата и время:" FontSize="14"/>
-            <DatePicker x:Name="dpAppointmentDate" FontSize="14" Margin="0 5 0 10"/>
+            <DatePicker x:Name="dpAppointmentDate" FontSize="14" Margin="0 5 0 10" IsEnabled="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=IsAdmin}"/>
             <TextBlock x:Name="dpAppointmentDateError" Foreground="Red" FontSize="12" Margin="0 0 0 10" Visibility="Collapsed"/>
             <TextBox x:Name="txtAppointmentTime" FontSize="14" Margin="0 5 0 10" 
-                 Text="12:00" ToolTip="Введите время в формате HH:mm"/>
+                 Text="12:00" ToolTip="Введите время в формате HH:mm" IsEnabled="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=IsAdmin}"/>
             <TextBlock x:Name="txtAppointmentTimeError" Foreground="Red" FontSize="12" Margin="0 0 0 10" Visibility="Collapsed"/>
 
             <!-- Поле для комментариев -->
