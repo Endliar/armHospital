@@ -29,6 +29,7 @@ namespace armHospital
             btnAddAppointment.Click += BtnAddAppointment_Click;
 
             LoadAppointments(userId, role);
+            LoadProfile(userId);
         }
 
         private async void LoadAppointments(int userId, string role)
@@ -68,6 +69,18 @@ namespace armHospital
             if (role == "admin")
             {
                 btnAddAppointment.Visibility = Visibility.Visible;
+            }
+        }
+
+        private async void LoadProfile(int userId)
+        {
+            var user = await _userRepository.GetUserById(userId);
+            if (user != null)
+            {
+                txtEmail.Text = user.Email;
+                txtPhoneNumber.Text = user.PhoneNumber;
+                txtRole.Text = user.Role;
+                txtFullName.Text = user.FullName;
             }
         }
 
@@ -111,6 +124,77 @@ namespace armHospital
                     }
                 }
             }
+        }
+
+        private void btnEditProfile_Click(object sender, RoutedEventArgs e)
+        {
+            txtEmail.IsReadOnly = false;
+            txtPhoneNumber.IsReadOnly = false;
+            txtFullName.IsReadOnly = false;
+
+            btnEditProfile.Visibility = Visibility.Collapsed;
+            btnSaveProfile.Visibility = Visibility.Visible;
+        }
+
+        private async void btnSaveProfile_Click(object sender, RoutedEventArgs e)
+        {
+            // Валидация полей
+            if (string.IsNullOrWhiteSpace(txtEmail.Text) || !IsValidEmail(txtEmail.Text))
+            {
+                MessageBox.Show("Введите корректный email!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtPhoneNumber.Text) || !IsValidPhoneNumber(txtPhoneNumber.Text))
+            {
+                MessageBox.Show("Введите корректный номер телефона!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtFullName.Text))
+            {
+                MessageBox.Show("Введите полное имя!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // Обновляем данные пользователя
+            var user = await _userRepository.GetUserById(_userId);
+            if (user != null)
+            {
+                user.Email = txtEmail.Text;
+                user.PhoneNumber = txtPhoneNumber.Text;
+                user.FullName = txtFullName.Text;
+
+                await _userRepository.UpdateUser(user);
+                MessageBox.Show("Данные профиля успешно обновлены!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+
+            // Возвращаемся в режим просмотра
+            txtEmail.IsReadOnly = true;
+            txtPhoneNumber.IsReadOnly = true;
+            txtFullName.IsReadOnly = true;
+
+            btnSaveProfile.Visibility = Visibility.Collapsed;
+            btnEditProfile.Visibility = Visibility.Visible;
+        }
+
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // Валидация номера телефона (простой пример)
+        private bool IsValidPhoneNumber(string phoneNumber)
+        {
+            return !string.IsNullOrWhiteSpace(phoneNumber) && phoneNumber.Length >= 10;
         }
     }
 }

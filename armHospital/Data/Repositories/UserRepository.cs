@@ -137,5 +137,31 @@ namespace armHospital.Data.Repositories
             }
             return null;
         }
+
+        public async Task UpdateUser(User user)
+        {
+            using (var connection = _context.CreateConnection())
+            {
+                var npgsqlConnection = (NpgsqlConnection)connection;
+                await npgsqlConnection.OpenAsync();
+
+                var query = @"
+            UPDATE users
+            SET 
+                email = @Email,
+                phone_number = @PhoneNumber,
+                full_name = @FullName
+            WHERE id = @Id";
+
+                using (var command = new NpgsqlCommand(query, npgsqlConnection))
+                {
+                    command.Parameters.AddWithValue("@Id", user.Id);
+                    command.Parameters.AddWithValue("@Email", user.Email);
+                    command.Parameters.AddWithValue("@PhoneNumber", user.PhoneNumber);
+                    command.Parameters.AddWithValue("@FullName", user.FullName);
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+        }
     }
 }
