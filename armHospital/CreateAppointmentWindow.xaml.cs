@@ -13,6 +13,7 @@ namespace armHospital
         private readonly AppointmentRepository _appointmentRepository;
         private readonly UserRepository _userRepository;
         private readonly int _adminUserId;
+        private readonly Appointment _existingAppointment;
 
         public CreateAppointmentWindow(int adminUserId)
         {
@@ -25,10 +26,36 @@ namespace armHospital
             LoadDoctors();
         }
 
+        public CreateAppointmentWindow(int adminUserId, Appointment appointment)
+        {
+            InitializeComponent();
+            _adminUserId = adminUserId;
+            _existingAppointment = appointment;
+            var context = new Data.DatabaseContext("Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=0611;");
+            _appointmentRepository = new AppointmentRepository(context);
+            _userRepository = new UserRepository(context);
+
+            LoadDoctors();
+            LoadAppointmentData();
+        }
+
         private async void LoadDoctors()
         {
             var doctors = await _userRepository.GetUsersByRole("doctor");
             cmbDoctors.ItemsSource = doctors;
+        }
+
+        private void LoadAppointmentData()
+        {
+            if (_existingAppointment != null)
+            {
+                cmbDoctors.SelectedValue = _existingAppointment.DoctorId;
+                txtTitle.Text = _existingAppointment.Title;
+                txtDescription.Text = _existingAppointment.Description;
+                dpAppointmentDate.SelectedDate = _existingAppointment.AppointmentDate.Date;
+                txtAppointmentTime.Text = _existingAppointment.AppointmentDate.ToString("HH:mm");
+                txtComments.Text = _existingAppointment.Comments;
+            }
         }
 
         private async void btnSave_Click(object sender, RoutedEventArgs e)
@@ -97,17 +124,27 @@ namespace armHospital
 
             var appointment = new Appointment
             {
+                Id = _existingAppointment?.Id ?? 0,
                 Title = txtTitle.Text,
                 Description = txtDescription.Text,
                 AppointmentDate = dpAppointmentDate.SelectedDate.Value.Date + TimeSpan.Parse(txtAppointmentTime.Text),
                 Comments = txtComments.Text,
-                Status = "pending", // По умолчанию статус "ожидание"
-                DoctorId = (int)cmbDoctors.SelectedValue, // ID выбранного доктора
-                UserId = _adminUserId // ID администратора, создающего запись
+                Status = _existingAppointment?.Status ?? "pending",
+                DoctorId = (int)cmbDoctors.SelectedValue,
+                UserId = _adminUserId
             };
 
-            await _appointmentRepository.AddAppointment(appointment);
-            MessageBox.Show("Запись успешно создана!");
+            if (_existingAppointment == null)
+            {
+                await _appointmentRepository.AddAppointment(appointment);
+                MessageBox.Show("Запись успешно создана!");
+            }
+            else
+            {
+                await _appointmentRepository.UpdateAppointment(appointment);
+                MessageBox.Show("Запись успешно обновлена!");
+            }
+
             this.Close();
         }
 

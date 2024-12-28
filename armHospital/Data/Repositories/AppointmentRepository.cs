@@ -111,5 +111,41 @@ namespace armHospital.Data.Repositories
                 }
             }
         }
+
+        public async Task UpdateAppointment(Appointment appointment)
+        {
+            using (var connection = _context.CreateConnection())
+            {
+                var npgsqlConnection = (NpgsqlConnection)connection;
+                await npgsqlConnection.OpenAsync();
+
+                var query = @"
+            UPDATE appointments
+            SET 
+                user_id = @UserId,
+                doctor_id = @DoctorId,
+                title = @Title,
+                description = @Description,
+                appointment_date = @AppointmentDate,
+                status = @Status,
+                comments = @Comments,
+                updated_at = @UpdatedAt
+            WHERE id = @Id";
+
+                using (var command = new NpgsqlCommand(query, npgsqlConnection))
+                {
+                    command.Parameters.AddWithValue("@Id", appointment.Id);
+                    command.Parameters.AddWithValue("@UserId", (object)appointment.UserId ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@DoctorId", (object)appointment.DoctorId ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@Title", appointment.Title);
+                    command.Parameters.AddWithValue("@Description", appointment.Description);
+                    command.Parameters.AddWithValue("@AppointmentDate", appointment.AppointmentDate);
+                    command.Parameters.AddWithValue("@Status", appointment.Status);
+                    command.Parameters.AddWithValue("@Comments", appointment.Comments);
+                    command.Parameters.AddWithValue("@UpdatedAt", DateTime.UtcNow);
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+        }
     }
 }

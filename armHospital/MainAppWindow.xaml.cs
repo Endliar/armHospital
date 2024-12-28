@@ -1,5 +1,7 @@
 ﻿using armHospital.Data.Repositories;
+using armHospital.Models;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace armHospital
 {
@@ -63,6 +65,16 @@ namespace armHospital
             var createAppointmentWindow = new CreateAppointmentWindow(_userId);
             createAppointmentWindow.ShowDialog();
             LoadAppointments(_userId, Role);
+        }
+
+        private void btnEdit_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.DataContext is Appointment appointment)
+            {
+                var editWindow = new CreateAppointmentWindow(_userId, appointment);
+                editWindow.ShowDialog();
+                LoadAppointments(_userId, Role);
+            }
         }
     }
 }
