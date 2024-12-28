@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace armHospital.Models
+﻿namespace armHospital.Models
 {
     public class Appointment
     {
@@ -18,5 +12,6 @@ namespace armHospital.Models
         public string Comments { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public string DoctorFullName { get; set; }
     }
 }

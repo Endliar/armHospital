@@ -1,19 +1,5 @@
 ﻿using armHospital.Data.Repositories;
-using armHospital.Models;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace armHospital
 {
@@ -23,6 +9,7 @@ namespace armHospital
     public partial class MainAppWindow : Window
     {
         private readonly AppointmentRepository _appointmentRepository;
+        private readonly UserRepository _userRepository;
         private readonly int _userId;
         public string Role { get; set; } // Свойство для роли
 
@@ -35,6 +22,7 @@ namespace armHospital
 
             var context = new Data.DatabaseContext("Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=0611;");
             _appointmentRepository = new AppointmentRepository(context);
+            _userRepository = new UserRepository(context);
 
             LoadAppointments(userId, role);
         }
@@ -48,6 +36,18 @@ namespace armHospital
             }
             else
             {
+                foreach (var appointment in appointments)
+                {
+                    if (appointment.DoctorId.HasValue)
+                    {
+                        var doctor = await _userRepository.GetUserById(appointment.DoctorId.Value);
+                        if (doctor != null)
+                        {
+                            appointment.DoctorFullName = doctor.FullName;
+                        }
+                    }
+                }
+
                 lvAppointments.ItemsSource = appointments;
             }
 
