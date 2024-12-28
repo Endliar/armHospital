@@ -24,6 +24,7 @@ namespace armHospital
             _userRepository = new UserRepository(context);
 
             LoadDoctors();
+            LoadStatuses();
         }
 
         public CreateAppointmentWindow(int adminUserId, Appointment appointment)
@@ -36,6 +37,7 @@ namespace armHospital
             _userRepository = new UserRepository(context);
 
             LoadDoctors();
+            LoadStatuses();
             LoadAppointmentData();
         }
 
@@ -55,6 +57,27 @@ namespace armHospital
                 dpAppointmentDate.SelectedDate = _existingAppointment.AppointmentDate.Date;
                 txtAppointmentTime.Text = _existingAppointment.AppointmentDate.ToString("HH:mm");
                 txtComments.Text = _existingAppointment.Comments;
+                cmbStatus.SelectedValue = _existingAppointment.Status;
+            }
+        }
+
+        private void LoadStatuses()
+        {
+            var statuses = new Dictionary<string, string>
+            {
+                { "pending", "Ожидается" },
+                { "confirmed", "Подтверждено" },
+                { "cancelled", "Отменено" },
+                { "completed", "Завершено" }
+            };
+
+            cmbStatus.ItemsSource = statuses;
+            cmbStatus.SelectedValuePath = "Key";
+            cmbStatus.DisplayMemberPath = "Value";
+
+            if (_existingAppointment != null)
+            {
+                cmbStatus.SelectedValue = _existingAppointment.Status;
             }
         }
 
@@ -95,6 +118,17 @@ namespace armHospital
                 txtDescriptionError.Visibility = Visibility.Collapsed;
             }
 
+            if (cmbStatus.SelectedValue == null)
+            {
+                cmbStatusError.Text = "Выберите статус!";
+                cmbStatusError.Visibility = Visibility.Visible;
+                isValid = false;
+            }
+            else
+            {
+                cmbStatusError.Visibility = Visibility.Collapsed;
+            }
+
             if (dpAppointmentDate.SelectedDate == null)
             {
                 dpAppointmentDateError.Text = "Выберите дату!";
@@ -129,7 +163,7 @@ namespace armHospital
                 Description = txtDescription.Text,
                 AppointmentDate = dpAppointmentDate.SelectedDate.Value.Date + TimeSpan.Parse(txtAppointmentTime.Text),
                 Comments = txtComments.Text,
-                Status = _existingAppointment?.Status ?? "pending",
+                Status = cmbStatus.SelectedValue.ToString(),
                 DoctorId = (int)cmbDoctors.SelectedValue,
                 UserId = _adminUserId
             };
