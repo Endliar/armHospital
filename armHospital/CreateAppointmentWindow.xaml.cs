@@ -17,10 +17,13 @@ namespace armHospital
 
         public bool IsAdmin { get; set; }
 
-        public CreateAppointmentWindow(int adminUserId)
+        public CreateAppointmentWindow(int adminUserId, string role)
         {
             InitializeComponent();
             _adminUserId = adminUserId;
+            IsAdmin = role == "admin";
+            DataContext = this;
+
             var context = new Data.DatabaseContext("Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=0611;");
             _appointmentRepository = new AppointmentRepository(context);
             _userRepository = new UserRepository(context);

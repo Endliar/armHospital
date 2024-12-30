@@ -41,7 +41,8 @@ namespace armHospital.Data.Repositories
                                 Status = reader.GetString(6),
                                 Comments = reader.GetString(7),
                                 CreatedAt = reader.GetDateTime(8),
-                                UpdatedAt = reader.GetDateTime(9)
+                                UpdatedAt = reader.GetDateTime(9),
+                                ClientId = reader.GetInt32(10)
                             });
                         }
                     }
@@ -78,7 +79,8 @@ namespace armHospital.Data.Repositories
                                 Status = reader.GetString(6),
                                 Comments = reader.GetString(7),
                                 CreatedAt = reader.GetDateTime(8),
-                                UpdatedAt = reader.GetDateTime(9)
+                                UpdatedAt = reader.GetDateTime(9),
+                                ClientId = reader.IsDBNull(10) ? (int?)null : reader.GetInt32(10),
                             });
                         }
                     }
@@ -96,8 +98,8 @@ namespace armHospital.Data.Repositories
                 await npgsqlConnection.OpenAsync();
 
                 var query = @"
-            INSERT INTO appointments (user_id, doctor_id, title, description, appointment_date, status, comments)
-            VALUES (@UserId, @DoctorId, @Title, @Description, @AppointmentDate, @Status, @Comments)";
+            INSERT INTO appointments (user_id, doctor_id, title, description, appointment_date, status, comments, client_id)
+            VALUES (@UserId, @DoctorId, @Title, @Description, @AppointmentDate, @Status, @Comments, @ClientId)";
                 using (var command = new NpgsqlCommand(query, npgsqlConnection))
                 {
                     command.Parameters.AddWithValue("@UserId", (object)appointment.UserId ?? DBNull.Value);
@@ -107,6 +109,7 @@ namespace armHospital.Data.Repositories
                     command.Parameters.AddWithValue("@AppointmentDate", appointment.AppointmentDate);
                     command.Parameters.AddWithValue("@Status", appointment.Status);
                     command.Parameters.AddWithValue("@Comments", appointment.Comments);
+                    command.Parameters.AddWithValue("@ClientId", (object)appointment.ClientId ?? DBNull.Value);
                     await command.ExecuteNonQueryAsync();
                 }
             }
@@ -129,7 +132,8 @@ namespace armHospital.Data.Repositories
                 appointment_date = @AppointmentDate,
                 status = @Status,
                 comments = @Comments,
-                updated_at = @UpdatedAt
+                updated_at = @UpdatedAt,
+                client_id = @ClientId
             WHERE id = @Id";
 
                 using (var command = new NpgsqlCommand(query, npgsqlConnection))
@@ -143,6 +147,7 @@ namespace armHospital.Data.Repositories
                     command.Parameters.AddWithValue("@Status", appointment.Status);
                     command.Parameters.AddWithValue("@Comments", appointment.Comments);
                     command.Parameters.AddWithValue("@UpdatedAt", DateTime.UtcNow);
+                    command.Parameters.AddWithValue("@ClientId", (object)appointment.ClientId ?? DBNull.Value);
                     await command.ExecuteNonQueryAsync();
                 }
             }
@@ -194,7 +199,47 @@ namespace armHospital.Data.Repositories
                                 Status = reader.GetString(6),
                                 Comments = reader.GetString(7),
                                 CreatedAt = reader.GetDateTime(8),
-                                UpdatedAt = reader.GetDateTime(9)
+                                UpdatedAt = reader.GetDateTime(9),
+                                ClientId = reader.IsDBNull(10) ? (int?)null : reader.GetInt32(10),
+                            });
+                        }
+                    }
+                }
+            }
+
+            return appointments;
+        }
+
+        public async Task<List<Appointment>> GetScheduledAppointments()
+        {
+            var appointments = new List<Appointment>();
+
+            using (var connection = _context.CreateConnection())
+            {
+                var npgsqlConnection = (NpgsqlConnection)connection;
+                await npgsqlConnection.OpenAsync();
+
+                var query = "SELECT * FROM appointments WHERE status = 'pending'"; // Только запланированные записи
+
+                using (var command = new NpgsqlCommand(query, npgsqlConnection))
+                {
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            appointments.Add(new Appointment
+                            {
+                                Id = reader.GetInt32(0),
+                                UserId = reader.IsDBNull(1) ? (int?)null : reader.GetInt32(1),
+                                DoctorId = reader.IsDBNull(2) ? (int?)null : reader.GetInt32(2),
+                                Title = reader.GetString(3),
+                                Description = reader.GetString(4),
+                                AppointmentDate = reader.GetDateTime(5),
+                                Status = reader.GetString(6),
+                                Comments = reader.GetString(7),
+                                CreatedAt = reader.GetDateTime(8),
+                                UpdatedAt = reader.GetDateTime(9),
+                                ClientId = reader.IsDBNull(10) ? (int?)null : reader.GetInt32(10),
                             });
                         }
                     }

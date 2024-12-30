@@ -30,6 +30,16 @@ namespace armHospital
 
             LoadAppointments(userId, role);
             LoadProfile(userId);
+
+            tabControl.SelectionChanged += TabControl_SelectionChanged;
+        }
+
+        private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (tabControl.SelectedItem is TabItem selectedTab && selectedTab.Header.ToString() == "Мои записи")
+            {
+                LoadUserAppointments(_userId);
+            }
         }
 
         private async void LoadAppointments(int userId, string role)
@@ -39,6 +49,12 @@ namespace armHospital
             if (role == "doctor")
             {
                 appointments = await _appointmentRepository.GetAppointmentsByDoctorId(userId);
+            }
+            else if (role == "user")
+            {
+                appointments = await _appointmentRepository.GetScheduledAppointments();
+                appointments = appointments.Where(a => !a.ClientId.HasValue).ToList();
+                lvAppointments.ItemsSource = appointments;
             }
             else
             {
@@ -51,6 +67,8 @@ namespace armHospital
             }
             else
             {
+                txtNoAppointments.Visibility = Visibility.Collapsed;
+
                 foreach (var appointment in appointments)
                 {
                     if (appointment.DoctorId.HasValue)
@@ -84,9 +102,39 @@ namespace armHospital
             }
         }
 
+        private async void LoadUserAppointments(int userId)
+        {
+            var appointments = await _appointmentRepository.GetAllAppointments();
+
+            appointments = appointments.Where(a => a.ClientId == userId).ToList();
+
+            if (appointments == null || appointments.Count == 0)
+            {
+                txtNoMyAppointments.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                txtNoMyAppointments.Visibility = Visibility.Collapsed;
+
+                foreach (var appointment in appointments)
+                {
+                    if (appointment.DoctorId.HasValue)
+                    {
+                        var doctor = await _userRepository.GetUserById(appointment.DoctorId.Value);
+                        if (doctor != null)
+                        {
+                            appointment.DoctorFullName = doctor.FullName;
+                        }
+                    }
+                }
+
+                lvMyAppointments.ItemsSource = appointments;
+            }
+        }
+
         private void BtnAddAppointment_Click(object sender, RoutedEventArgs e)
         {
-            var createAppointmentWindow = new CreateAppointmentWindow(_userId);
+            var createAppointmentWindow = new CreateAppointmentWindow(_userId, Role);
             createAppointmentWindow.ShowDialog();
             LoadAppointments(_userId, Role);
         }
@@ -195,6 +243,29 @@ namespace armHospital
         private bool IsValidPhoneNumber(string phoneNumber)
         {
             return !string.IsNullOrWhiteSpace(phoneNumber) && phoneNumber.Length >= 10;
+        }
+
+        private async void btnBook_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.DataContext is Appointment appointment)
+            {
+                try
+                {
+                    appointment.ClientId = _userId;
+
+                    await _appointmentRepository.UpdateAppointment(appointment);
+
+                    MessageBox.Show("Вы успешно записаны на прием!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    // Обновляем данные на обеих вкладках
+                    LoadAppointments(_userId, Role);
+                    LoadUserAppointments(_userId);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка при записи на прием: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
         }
     }
 }
